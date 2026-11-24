@@ -7,10 +7,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.widget.EditText;
+
+import android.text.InputType;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.zxing.BarcodeFormat;
@@ -29,7 +33,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     private TextView tvStatus;
-    private Button btnGetLink, btnSendToPort, btnSettings;
+    private Button btnGetLink, btnSendToPort;
+    private ImageButton btnSettings;
     private ApiService apiService;
     public static boolean isConnected = false;
 
@@ -44,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
         OkHttpClient client = new OkHttpClient.Builder().build();
 
-        String baseUrl = "http://192.168.1.208:5000/";
+        String baseUrl = "https://paylock.ru/api/TestLink/google-link/";
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -65,8 +70,35 @@ public class MainActivity extends AppCompatActivity {
         btnSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
+                EditText passwordInput = new EditText(MainActivity.this);
+                passwordInput.setInputType(
+                        InputType.TYPE_CLASS_TEXT |
+                                InputType.TYPE_TEXT_VARIATION_PASSWORD
+                );
+                passwordInput.setHint("Введите пароль");
+
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Доступ ограничен! Введите пароль.")
+                        .setView(passwordInput)
+                        .setPositiveButton("Войти", (dialog, which) -> {
+                            String password = passwordInput.getText().toString();
+
+                            if (password.equals("testPassword123")) {
+                                Intent intent = new Intent(
+                                        MainActivity.this,
+                                        SettingsActivity.class
+                                );
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(
+                                        MainActivity.this,
+                                        "Неверный пароль",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
             }
         });
     }

@@ -6,11 +6,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,6 +46,18 @@ public class SettingsActivity extends AppCompatActivity implements SerialInputOu
     private static final String ACTION_USB_PERMISSION = "com.example.serialapp.USB_PERMISSION";
     private PendingIntent permissionIntent;
 
+    private Spinner spinnerTariff;
+    private final String[] tariffNames = {
+            "Базовый",
+            "Стандартный",
+            "Расширенный"
+    };
+    private final String[] tariffCodes = {
+            "SET_BASIC",
+            "SET_STANDARD",
+            "SET_PREMIUM"
+    };
+
     // Статический метод для вызова из MainActivity
     public static void sendHexMessage(String hex) {
         if (instance != null && instance.serialPort != null) {
@@ -50,7 +65,6 @@ public class SettingsActivity extends AppCompatActivity implements SerialInputOu
         }
     }
 
-    // Для доступа из MainActivity (простой, но рабочий вариант)
     private static SettingsActivity instance;
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -107,6 +121,58 @@ public class SettingsActivity extends AppCompatActivity implements SerialInputOu
         btnDisconnect.setOnClickListener(v -> disconnect());
 
         refreshDeviceList();
+
+        spinnerTariff = findViewById(R.id.spinnerTariff);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                tariffNames
+        );
+
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        spinnerTariff.setAdapter(adapter);
+        SharedPreferences prefs = getSharedPreferences(
+                "AppSettings",
+                MODE_PRIVATE
+        );
+        String savedTariff = prefs.getString(
+                "selectedTariff",
+                "SET_BASIC"
+        );
+
+        int savedPosition = 0;
+        for (int i = 0; i < tariffCodes.length; i++) {
+            if (tariffCodes[i].equals(savedTariff)) {
+                savedPosition = i;
+                break;
+            }
+        }
+
+        spinnerTariff.setSelection(savedPosition);
+
+        // Сохраняем выбор при каждом изменении
+        spinnerTariff.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent,
+                            View view,
+                            int position,
+                            long id
+                    ) {
+                        prefs.edit()
+                                .putString("selectedTariff", tariffCodes[position])
+                                .apply();
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                }
+        );
     }
 
     private void refreshDeviceList() {

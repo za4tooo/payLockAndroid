@@ -59,5 +59,13 @@
             android:padding="8dp"
             android:fontFamily="monospace"
             android:textSize="12sp"/>
+
+        <Spinner
+            android:id="@+id/spinnerTariff"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
     </LinearLayout>
+
 </ScrollView>
